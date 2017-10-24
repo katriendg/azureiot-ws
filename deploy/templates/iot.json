@@ -1,0 +1,157 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "variables": {
+        "iotHubKeyName": "iothubowner",
+        "iotHubResourceId": "[resourceId('Microsoft.Devices/Iothubs', parameters('iotHubName'))]",
+        "iotHubKeyResource": "[resourceId('Microsoft.Devices/Iothubs/Iothubkeys', parameters('iotHubName'), variables('iotHubKeyName'))]",
+        "iotHubVersion": "2017-07-01",
+        "tsiVersion": "2017-02-28-preview",
+        "delimiters": [ ".", "//" ],
+        "tsiEnvironmentSkuCapacity": 1,
+        "tsiEnvironmentSkuName": "S1",
+        "tsiConsumerGroup": "timeseries",
+        "tsiAccessPolicyName": "[concat(parameters('tsiEnvironmentName'),'-access')]",
+        "tsiPolicyRoles": "Contributor",
+        "iotHubKeyService": "service",
+        "tsiIotHubKeyResource": "[resourceId('Microsoft.Devices/Iothubs/Iothubkeys', parameters('iotHubName'), variables('iotHubKeyService'))]"
+    },
+    "parameters": {
+        "location": {
+            "type": "string",
+            "minLength": 4,
+            "defaultValue": "West Europe"
+        },
+        "iotHubName": {
+            "type": "string",
+            "minLength": 5
+        },
+        "iotSkuName": {
+            "type": "string",
+            "allowedValues": [
+                "F1",
+                "S1",
+                "S2"
+            ],
+            "metadata": {
+                "description": "One of the supported SKUs: F1, S1 or S2"
+            }
+        },
+        "iotHubTier": {
+            "type": "string",
+            "defaultValue": "Standard"
+        },
+        "capacityUnits": {
+            "type": "int",
+            "minValue": 1,
+            "defaultValue": 1,
+            "metadata": {
+                "description": "Number of desired IoT Hub units. Restricted to 1 unit for F1. Can be set up to maximum number allowed for subscription."
+            }
+        },
+        "tsiEnvironmentName": {
+            "type": "string",
+            "minLength": 3
+        },
+        "tsiOwnerServicePrincipalObjectId": {
+            "type": "string",
+            "minLength": 12
+        }
+    },
+    "resources": [
+        {
+            "apiVersion": "[variables('iotHubVersion')]",
+            "type": "Microsoft.Devices/IotHubs",
+            "name": "[parameters('iotHubName')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "[parameters('iotSkuName')]",
+                "tier": "[parameters('iotHubTier')]",
+                "capacity": "[parameters('capacityUnits')]"
+            },
+            "properties": {
+                "parameters": "[parameters('location')]"
+            },
+            "tags": {
+                "displayName": "IoTHub"
+            },
+            "resources": [
+                {
+                    "apiVersion": "[variables('iotHubVersion')]",
+                    "name": "[concat(parameters('iotHubName'), '/events/', variables('tsiConsumerGroup'))]",
+                    "type": "Microsoft.Devices/Iothubs/eventhubEndpoints/ConsumerGroups",
+                    "dependsOn": [
+                        "[concat('Microsoft.Devices/Iothubs/', parameters('iotHubName'))]"
+                    ],
+                    "tags": {
+                        "displayName": "TSI Consumer Group"
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Microsoft.TimeSeriesInsights/environments",
+            "name": "[parameters('tsiEnvironmentName')]",
+            "apiVersion": "[variables('tsiVersion')]",
+            "location": "[parameters('location')]",
+            "properties": {
+              "dataRetentionTime": "P30D"
+            },
+            "sku": {
+              "name": "[variables('tsiEnvironmentSkuName')]",
+              "capacity": "[variables('tsiEnvironmentSkuCapacity')]"
+            },
+            "dependsOn": [
+              "[concat('Microsoft.Devices/Iothubs/', parameters('iotHubName'))]"
+            ],
+            "resources": [
+              {
+                "type": "eventsources",
+                "name": "[parameters('tsiEnvironmentName')]",
+                "apiVersion": "[variables('tsiVersion')]",
+                "location": "[parameters('location')]",
+                "kind": "Microsoft.EventHub",
+                "properties": {
+                  "eventSourceResourceId": "[variables('iotHubResourceId')]",
+                  "serviceBusNamespace": "[split(reference(variables('iotHubResourceId'), variables('iotHubVersion')).eventHubEndpoints.events.endpoint, variables('delimiters'))[1]]",
+                  "eventHubName": "[reference(variables('iotHubResourceId'), variables('iotHubVersion')).eventHubEndpoints.events.path]",
+                  "consumerGroupName": "[variables('tsiConsumerGroup')]",
+                  "keyName": "[variables('iotHubKeyService')]",
+                  "sharedAccessKey": "[concat(listkeys(variables('tsiIotHubKeyResource'), variables('iotHubVersion')).primaryKey)]"
+                },
+                "dependsOn": [
+                  "[concat('Microsoft.TimeSeriesInsights/environments/', parameters('tsiEnvironmentName'))]"
+                ]
+              },
+              {
+                "type": "accesspolicies",
+                "name": "[variables('tsiAccessPolicyName')]",
+                "apiVersion": "[variables('tsiVersion')]",
+                "properties": {
+                  "principalObjectId": "[parameters('tsiOwnerServicePrincipalObjectId')]",
+                  "roles": [
+                    "[variables('tsiPolicyRoles')]"
+                  ]
+                },
+                "dependsOn": [
+                  "[concat('Microsoft.TimeSeriesInsights/environments/', parameters('tsiEnvironmentName'))]"
+                ]
+              }
+            ]
+          }
+    ],
+    "outputs": {
+        "iotHubConnectionString": {
+            "type": "string",
+            "value": "[concat('HostName=', reference(variables('iotHubResourceId')).hostName, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), variables('iotHubVersion')).primaryKey)]"
+        },
+        "iotHubEventHubName": {
+            "type": "string",
+            "value": "[reference(variables('iotHubResourceId')).eventHubEndpoints.events.path]"
+        },
+        "iotHubEventHubConnectionString": {
+            "type": "string",
+            "value": "[concat('Endpoint=', reference(variables('iotHubResourceId')).eventHubEndpoints.events.endpoint, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), variables('iotHubVersion')).primaryKey)]"
+        }
+    }
+}
