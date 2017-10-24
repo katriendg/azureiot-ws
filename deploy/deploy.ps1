@@ -28,6 +28,8 @@ $RGName = "$DeploymentPrefix-rg"
 $IoTHubName = "$DeploymentPrefix-hub"
 $IoTSkuName = "S1"
 $TsiEnvironmentName = "$DeploymentPrefix-tsi"
+$storageAccountIot = $DeploymentPrefix + "stor"
+$routeColdContainerName = "archivetelemetry"
 
 # Check if user is already signed into Azure
 try {
@@ -71,6 +73,22 @@ if (-not $rg)
 }
 else{ Write-Host "Resource group found: $RGName"}
 
+
+# Create Storage Account and container - needed to setup Routing to Storage (ARM can create the storage account but not the container)
+$storageAccount = Get-AzureRmStorageAccount -ResourceGroupName $RGName -Name $storageAccountIot -ErrorAction SilentlyContinue
+if(!$storageAccount){
+  $storageAccount = New-AzureRmStorageAccount -ResourceGroupName $RGName -Name $storageAccountIot -Location $Location -SkuName "Standard_LRS"
+  Write-Host "New storage account created: $storageAccountIot"
+}
+else{ 
+    Write-Host "Storage account already exists, nothing updated: $storageAccountIot"
+}
+
+# Create container for cold storage route destination, if not existing
+$ctx = $storageAccount.Context
+$routeContainer = New-AzureStorageContainer -Name $routeColdContainerName -Permission Off -Context $ctx -ErrorAction SilentlyContinue
+
+
 #deploy resource group
  New-AzureRmResourceGroupDeployment -Verbose -Force -ErrorAction Stop `
     -Name "iot" `
@@ -79,10 +97,12 @@ else{ Write-Host "Resource group found: $RGName"}
     -iotHubName $IoTHubName `
     -iotSkuName $IoTSkuName `
     -tsiEnvironmentName $TsiEnvironmentName `
-    -tsiOwnerServicePrincipalObjectId $TsiOwnerServicePrincipalObjectId 
+    -tsiOwnerServicePrincipalObjectId $TsiOwnerServicePrincipalObjectId `
+    -storageNameCold $storageAccountIot `
+    -routeContainerName $routeColdContainerName 
 
 
-Write-Host "Finished provisioning the solution"
+Write-Host "Finished provisioning the solution - with Storage and routing"
 
 
 

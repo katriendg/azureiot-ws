@@ -56,6 +56,14 @@
         "tsiOwnerServicePrincipalObjectId": {
             "type": "string",
             "minLength": 12
+        },
+        "storageNameCold": {
+            "type": "string",
+            "minLength": 5
+        },
+        "routeContainerName": {
+            "type": "string",
+            "minLength": 5
         }
     },
     "resources": [
@@ -70,7 +78,43 @@
                 "capacity": "[parameters('capacityUnits')]"
             },
             "properties": {
-                "parameters": "[parameters('location')]"
+                "parameters": "[parameters('location')]",
+                "routing": {
+                    "endpoints": {
+                        "storageContainers": [
+                            {
+                                "name": "archive",
+                                "resourceGroup": "[resourceGroup().name]",
+                                "subscriptionId": "[subscription().subscriptionId]",
+                                "connectionString": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('storageNameCold'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts',parameters('storageNameCold')),providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value)]",
+                                "containerName": "[parameters('routeContainerName')]",
+                                "fileNameFormat": "{iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}-{mm}-01",
+                                "batchFrequencyInSeconds": "60",
+                                "maxChunkSizeInBytes": "10485760"
+                            }
+                        ]
+                    },
+                    "routes": [
+                        {
+                            "name": "routetostorage",
+                            "source": "DeviceMessages",
+                            "condition": "",
+                            "endpointNames": [
+                                "archive"
+                            ],
+                            "isEnabled": true
+                        },
+                        {
+                            "name": "routetodefault",
+                            "source": "DeviceMessages",
+                            "condition": "",
+                            "endpointNames": [
+                                "events"
+                            ],
+                            "isEnabled": true
+                        }
+                    ]
+                }
             },
             "tags": {
                 "displayName": "IoTHub"
