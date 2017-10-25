@@ -1,0 +1,165 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "logicAppName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the logic app to create."
+            }
+        },
+        "emailAddress": {
+            "type": "string",
+            "metadata": {
+                "description": "Destination email for the message"
+            }
+        }
+    },
+    "variables": {
+        "logicVersion": "2016-06-01",
+        "o365ConnectionName": "[concat('o365conn-', parameters('LogicAppNAme'))]",
+        "ehConnectionName": "[concat('ehconn-', parameters('LogicAppNAme'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Logic/workflows",
+            "name": "[parameters('logicAppName')]",
+            "apiVersion": "[variables('logicVersion')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/connections', variables('o365ConnectionName'))]",
+                "[resourceId('Microsoft.Web/connections', variables('ehConnectionName'))]"
+            ],
+            "properties": {
+                "state": "Disabled",
+                "definition": {
+                    "$schema": "http://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "contentVersion": "1.0.0.0",
+                    "triggers": {
+                        "When_events_are_available_in_Event_Hub": {
+                          "recurrence": {
+                            "frequency": "Minute",
+                            "interval": 3
+                          },
+                          "splitOn": "@triggerBody()",
+                          "type": "ApiConnection",
+                          "inputs": {
+                            "host": {
+                              "connection": {
+                                "name": "@parameters('$connections')['eventhubs']['connectionId']"
+                              }
+                            },
+                            "method": "get",
+                            "path": "/@{encodeURIComponent('ehstream')}/events/batch/head",
+                            "queries": {
+                              "consumerGroupName": "logicapp",
+                              "contentType": "application/octet-stream",
+                              "maximumEventsCount": 50
+                            }
+                          }
+                        }
+                      },
+                      "actions": {
+                        "Parse_JSON": {
+                          "runAfter": {},
+                          "type": "ParseJson",
+                          "inputs": {
+                            "content": "@{base64ToString(triggerBody()?['ContentData'])}",
+                            "schema": {
+                              "properties": {
+                                "deviceId": {
+                                  "type": "string"
+                                },
+                                "humidity": {
+                                  "type": "number"
+                                },
+                                "messageId": {
+                                  "type": "number"
+                                },
+                                "temperature": {
+                                  "type": "number"
+                                }
+                              },
+                              "type": "object"
+                            }
+                          }
+                        },
+                        "Send_an_email": {
+                          "runAfter": {
+                            "Parse_JSON": [
+                              "Succeeded"
+                            ]
+                          },
+                          "type": "ApiConnection",
+                          "inputs": {
+                            "body": {
+                              "Body": "Usage too high - Temp is at @{body('Parse_JSON')?['temperature']} which is too high!",
+                              "Subject": "Alert usage",
+                              "To": "[parameters('emailAddress')]"
+                            },
+                            "host": {
+                              "connection": {
+                                "name": "@parameters('$connections')['office365']['connectionId']"
+                              }
+                            },
+                            "method": "post",
+                            "path": "/Mail"
+                          }
+                        }
+                      },
+                      "parameters": {
+                        "$connections": {
+                            "defaultValue": {},
+                            "type": "Object"
+                        }
+                    }
+                },
+                "parameters": 
+                {
+                    "$connections": {
+                        "value": {
+                            "eventhubs": {
+                                "connectionId": "[resourceId('Microsoft.Web/connections', variables('ehConnectionName'))]",
+                                "connectionName": "[variables('ehConnectionName')]",
+                                "id": "[concat(subscription().id,'/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/eventhubs')]"
+                            },
+                            "office365": {                                
+                                "connectionId": "[concat(subscription().id, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Web/connections/', variables('o365ConnectionName'))]",
+                                "connectionName": "[variables('o365ConnectionName')]",
+                                "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/office365') ]"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Web/connections",
+            "name": "[variables('o365ConnectionName')]",
+            "apiVersion": "[variables('logicVersion')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "displayName": "O365 Mail Connection",
+                "api": {
+                    "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/office365')]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Web/connections",
+            "apiVersion": "[variables('logicVersion')]",
+            "location": "[resourceGroup().location]",
+            "name": "[variables('ehConnectionName')]",
+            "properties": {
+                "api": {
+                    "id": "[concat(subscription().id,'/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/eventhubs')]"
+                },
+                "displayName": "Eventhub Connection",
+                "parameterValues": {
+                    "connectionString": "[reference(concat('Microsoft.Resources/deployments/', 'iot'), '2015-11-01').outputs.eventhubListenRuleConnString.value]"
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}

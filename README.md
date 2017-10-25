@@ -19,6 +19,8 @@
     - https://github.com/Azure/iothub-explorer#iothub-explorer
     - Only on Windows: https://github.com/Azure/azure-iot-sdk-csharp/tree/master/tools/DeviceExplorer
     - https://github.com/Azure/iothub-diagnostics
+- Azure Storage Explorer (https://azure.microsoft.com/en-us/features/storage-explorer/)
+
 
 
 

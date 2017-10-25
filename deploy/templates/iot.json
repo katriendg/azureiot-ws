@@ -14,7 +14,14 @@
         "tsiAccessPolicyName": "[concat(parameters('tsiEnvironmentName'),'-access')]",
         "tsiPolicyRoles": "Contributor",
         "iotHubKeyService": "service",
-        "tsiIotHubKeyResource": "[resourceId('Microsoft.Devices/Iothubs/Iothubkeys', parameters('iotHubName'), variables('iotHubKeyService'))]"
+        "tsiIotHubKeyResource": "[resourceId('Microsoft.Devices/Iothubs/Iothubkeys', parameters('iotHubName'), variables('iotHubKeyService'))]",
+        "sbVersion": "[providers('Microsoft.Eventhub', 'namespaces').apiVersions[0]]",
+        "sbSku": 1,
+        "sbName": "[concat(parameters('iotHubName'),'sb')]",
+        "ehNameStream": "ehstream",
+        "ehstreamAuthRuleResourceId": "[resourceId('Microsoft.Eventhub/namespaces/EventHubs/AuthorizationRules', variables('sbName'),variables('ehNameStream'),'SendPolicy')]",
+        "ehstreamListenRuleResourceId" : "[resourceId('Microsoft.Eventhub/namespaces/EventHubs/AuthorizationRules', variables('sbName'),variables('ehNameStream'),'ReadLogicPolicy')]",
+        "logicAppConsumerGroup" : "logicapp"
     },
     "parameters": {
         "location": {
@@ -72,6 +79,9 @@
             "type": "Microsoft.Devices/IotHubs",
             "name": "[parameters('iotHubName')]",
             "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.EventHub/namespaces/', variables('sbName'),'/eventhubs/',variables('ehNameStream'))]"
+            ],
             "sku": {
                 "name": "[parameters('iotSkuName')]",
                 "tier": "[parameters('iotHubTier')]",
@@ -92,6 +102,14 @@
                                 "batchFrequencyInSeconds": "60",
                                 "maxChunkSizeInBytes": "10485760"
                             }
+                        ],
+                        "eventHubs": [
+                            {
+                                "connectionString": "[listkeys(variables('ehstreamAuthRuleResourceId'), variables('sbVersion')).primaryConnectionString]",
+                                "name": "ehstream",
+                                "resourceGroup": "[resourceGroup().name]",
+                                "subscriptionId": "[subscription().subscriptionId]"
+                            }
                         ]
                     },
                     "routes": [
@@ -110,6 +128,15 @@
                             "condition": "",
                             "endpointNames": [
                                 "events"
+                            ],
+                            "isEnabled": true
+                        },
+                        {
+                            "name": "routetoeh",
+                            "source": "DeviceMessages",
+                            "condition": "usagealert='true'",
+                            "endpointNames": [
+                                "ehstream"
                             ],
                             "isEnabled": true
                         }
@@ -182,7 +209,79 @@
                 ]
               }
             ]
-          }
+          },
+          {
+            "apiVersion": "[variables('sbVersion')]",
+            "name": "[variables('sbName')]",
+            "type": "Microsoft.Eventhub/namespaces",
+            "location": "[parameters('location')]",
+            "properties": {
+                "messagingSku": "[variables('sbSku')]",
+                "region": "[parameters('location')]"
+            },
+            "tags": {
+                "displayName": "Event Hubs"
+            },
+            "resources": [
+                {
+                    "apiVersion": "[variables('sbVersion')]",
+                    "name": "[variables('ehNameStream')]",
+                    "type": "EventHubs",
+                    "location": "[parameters('location')]",
+                    "dependsOn": [
+                        "[concat('Microsoft.Eventhub/namespaces/', variables('sbName'))]"
+                    ],
+                    "properties": {
+                        "path": "[variables('ehNameStream')]",
+                        "MessageRetentionInDays": 1
+                    },
+                    "tags": {
+                        "displayName": "Hub Alerts Event Hub"
+                    },
+                    "resources": [
+                        {
+                            "apiVersion": "[variables('sbVersion')]",
+                            "name": "[variables('logicAppConsumerGroup')]",
+                            "type": "ConsumerGroups",
+                            "dependsOn": [
+                                "[variables('ehNameStream')]"
+                            ],
+                            "tags": {
+                                "displayName": "Consumer Group for Logic App"
+                            }
+                        },
+                        {
+                            "apiVersion": "[variables('sbVersion')]",
+                            "name": "SendPolicy",
+                            "type": "AuthorizationRules",
+                            "dependsOn": [
+                                "[variables('ehNameStream')]"
+                            ],
+                            "properties": {
+                                "KeyName": "SendPolicy",
+                                "rights": [
+                                    "Send"
+                                ]
+                            }
+                        },
+                        {
+                            "apiVersion": "[variables('sbVersion')]",
+                            "name": "ReadLogicPolicy",
+                            "type": "AuthorizationRules",
+                            "dependsOn": [
+                                "[variables('ehNameStream')]"
+                            ],
+                            "properties": {
+                                "KeyName": "ReadLogicPolicy",
+                                "rights": [
+                                    "Listen"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
     ],
     "outputs": {
         "iotHubConnectionString": {
@@ -196,6 +295,22 @@
         "iotHubEventHubConnectionString": {
             "type": "string",
             "value": "[concat('Endpoint=', reference(variables('iotHubResourceId')).eventHubEndpoints.events.endpoint, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), variables('iotHubVersion')).primaryKey)]"
+        },
+        "eventHubNamespace": {
+            "type": "string",
+            "value": "[variables('sbName')]"
+        },
+        "logicAppConsumerGroup": {
+            "type": "string",
+            "value": "[variables('logicAppConsumerGroup')]"
+        },
+        "eventHubPath": {
+            "type": "string",
+            "value": "[variables('ehNameStream')]"
+        },
+        "eventhubListenRuleConnString" : {
+            "type": "string",
+            "value": "[listkeys(variables('ehstreamListenRuleResourceId'), variables('sbVersion')).primaryConnectionString]"
         }
     }
 }
