@@ -1,6 +1,6 @@
 # Azure IoT WS - Part 2
 
-    In this lab we leverage IoT Hub Routes and endpoints to automatically store all telemetry messages coming in into Storage Blobs. When you use Routes, you also need to add a route for the default Events endpoint if you want to keep receiving messages into it.
+> In this lab we leverage IoT Hub Routes and endpoints to automatically store all telemetry messages coming in into Storage Blobs. When you use Routes, you also need to add a route for the default Events endpoint if you want to keep receiving messages into it.
 
 ### Add a Storage account
 1. Create a new Storage account in your resource group.
