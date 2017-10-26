@@ -1,0 +1,223 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2014-04-01-preview/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "serviceBusNamespaceName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Service Bus namespace"
+            }
+        },
+        "serviceBusQueueName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Queue"
+            }
+        },
+        "asaName": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 63,
+            "metadata": {
+                "description": "Stream Analytics Job Name, can contain alphanumeric characters and hypen and must be 3-63 characters long"
+            }
+        },
+        "numberOfStreamingUnits": {
+            "type": "int",
+            "minValue": 1,
+            "maxValue": 48,
+            "allowedValues": [
+                1,
+                3,
+                6,
+                12,
+                18,
+                24,
+                30,
+                36,
+                42,
+                48
+            ],
+            "metadata": {
+                "description": "Number of Streaming Units"
+            }
+        },
+        "ioTHubName" : {
+            "type": "string",
+            "minLength": "5" 
+        }
+    },
+    "variables": {
+        "queueAuthorizationRuleNameListen" : "ListenFPolicy",
+        "namespaceAuthorizationRuleName" : "NsAuthRule",
+        "namespaceAuthRuleName": "[concat(parameters('serviceBusNamespaceName'), concat('/', variables('namespaceAuthorizationRuleName')))]",
+        "nsAuthorizationRuleResourceId": "[resourceId('Microsoft.ServiceBus/namespaces/authorizationRules', parameters('serviceBusNamespaceName'), variables('namespaceAuthorizationRuleName'))]",
+        "qAuthorizationRuleResourceIdListen": "[resourceId('Microsoft.ServiceBus/namespaces/queues/authorizationRules', parameters('serviceBusNamespaceName'), parameters('serviceBusQueueName'), variables('queueAuthorizationRuleNameListen'))]",
+        "sbVersion": "2017-04-01",
+        "asaConsumerGroup": "streamanalyticscg",
+        "saVersion": "2016-03-01",
+        "iotHubVersion": "2017-07-01",
+        "iotHubKeyName": "iothubowner",
+        "iotHubKeyResource": "[resourceId('Microsoft.Devices/Iothubs/Iothubkeys', parameters('iotHubName'), variables('iotHubKeyName'))]"
+    },
+    "resources": [
+        {
+            "apiVersion": "[variables('sbVersion')]",
+            "name": "[parameters('serviceBusNamespaceName')]",
+            "type": "Microsoft.ServiceBus/namespaces",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "Standard",
+                "tier": "Standard"
+            },
+            "properties": {},
+            "resources": [
+                {
+                    "apiVersion": "[variables('sbVersion')]",
+                    "name": "[parameters('serviceBusQueueName')]",
+                    "type": "Queues",
+                    "dependsOn": [
+                        "[concat('Microsoft.ServiceBus/namespaces/', parameters('serviceBusNamespaceName'))]"
+                    ],
+                    "properties": {
+                        "lockDuration": "PT5M",
+                        "maxSizeInMegabytes": "1024",
+                        "requiresDuplicateDetection": "false",
+                        "requiresSession": "false",
+                        "defaultMessageTimeToLive": "P10675199DT2H48M5.4775807S",
+                        "deadLetteringOnMessageExpiration": "false",
+                        "duplicateDetectionHistoryTimeWindow": "PT10M",
+                        "maxDeliveryCount": "10",
+                        "autoDeleteOnIdle": "P10675199DT2H48M5.4775807S",
+                        "enablePartitioning": "false",
+                        "enableExpress": "false"
+                    },
+                    "resources": [
+                        {
+                            "apiVersion": "[variables('sbVersion')]",
+                            "name": "[variables('queueAuthorizationRuleNameListen')]",
+                            "type": "AuthorizationRules",
+                            "dependsOn": [
+                                "[parameters('serviceBusQueueName')]"
+                            ],
+                            "properties": {
+                                "rights": [
+                                    "Listen"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "apiVersion": "[variables('sbVersion')]",
+            "name": "[variables('namespaceAuthRuleName')]",
+            "type": "Microsoft.ServiceBus/namespaces/authorizationRules",
+            "dependsOn": [
+                "[concat('Microsoft.ServiceBus/namespaces/', parameters('serviceBusNamespaceName'))]"
+            ],
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "rights": [
+                    "Send"
+                ]
+            }
+        },
+        {
+            "apiVersion": "[variables('iotHubVersion')]",
+            "name": "[concat(parameters('ioTHubName'), '/events/', variables('asaConsumerGroup'))]",
+            "type": "Microsoft.Devices/IotHubs/eventhubEndpoints/ConsumerGroups",
+            "tags": {
+                "displayName": "Stream Analytics Consumer Group"
+            }
+        },
+        {
+            "type": "Microsoft.StreamAnalytics/StreamingJobs",
+            "apiVersion": "[variables('saVersion')]",
+            "name": "[parameters('asaName')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.ServiceBus/namespaces/', parameters('serviceBusNamespaceName'))]"
+            ],
+            "properties": {
+                "sku": {
+                    "name": "Standard"
+                },
+                "outputErrorPolicy": "stop",
+                "eventsOutOfOrderPolicy": "adjust",
+                "eventsOutOfOrderMaxDelayInSeconds": 0,
+                "eventsLateArrivalMaxDelayInSeconds": 10,
+                "dataLocale": "en-US",
+                "Inputs": [
+                    {
+                        "Name": "Hub",
+                        "Properties": {
+                            "DataSource": {
+                                "Properties": {
+                                    "consumerGroupName": "[variables('asaConsumerGroup')]",
+                                    "iotHubNamespace": "[parameters('iotHubName')]",
+                                    "sharedAccessPolicyKey": "[listkeys(variables('iotHubKeyResource'), variables('iotHubVersion')).primaryKey]",
+                                    "sharedAccessPolicyName": "[variables('iotHubKeyName')]",
+                                    "endpoint": "messages/events"
+                                },
+                                "Type": "Microsoft.Devices/IotHubs"
+                            },
+                            "Serialization": {
+                                "Properties": {
+                                    "Encoding": "UTF8"
+                                },
+                                "Type": "Json"
+                            },
+                            "Type": "Stream"
+                        }
+                    }
+                ],
+                "Outputs": [
+                    {
+                        "Name": "QueueShutDown",
+                        "Properties": {
+                            "DataSource": {
+                                "Properties": {
+                                    "serviceBusNamespace": "[parameters('serviceBusNamespaceName')]",
+                                    "SharedAccessPolicyKey": "[listkeys(variables('nsAuthorizationRuleResourceId'), variables('sbVersion')).primaryKey]",
+                                    "SharedAccessPolicyName": "[variables('namespaceAuthorizationRuleName')]",
+                                    "queueName": "[parameters('serviceBusQueueName')]"
+                                },
+                                "Type": "Microsoft.ServiceBus/Queue"
+                            },
+                            "Serialization": {
+                                "Properties": {
+                                    "Encoding": "UTF8",
+                                    "Format": "Array"
+                                },
+                                "Type": "Json"
+                            }
+                        }
+                    }
+                ],
+                "transformation": {
+                    "name": "Transformation",
+                    "properties": {
+                        "streamingUnits": "[parameters('numberOfStreamingUnits')]",
+                        "query": "SELECT\r\n    *\r\nINTO\r\n    [QueueShutDown] \r\nFROM\r\n    [Hub]"
+                    }
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "SbNamespaceName": {
+            "type": "string",
+            "value": "[parameters('serviceBusNamespaceName')]"
+        },
+        "SbQueueName": {
+            "type": "string",
+            "value": "[parameters('serviceBusQueueName')]"
+        },
+        "QueueConnectionStringListen": {
+            "type": "string",
+            "value": "[listkeys(variables('qAuthorizationRuleResourceIdListen'), variables('sbVersion')).primaryConnectionString]"
+        }
+    }
+}
