@@ -1,4 +1,8 @@
 # This script simplifies ARM deployment.
+# For completing the architecture there are four scripts:
+# deploy.ps1 - this one for provisioning the key services
+# deploy-logic.ps1 - provisions the logic app - requires the deploy.ps1 to have been executed
+# deploy-asa.ps1 - provision the Stream analytics job with an input and output, Service Bus Queue, adds a consumer group to IoT Hub
 
 [CmdletBinding()]
 Param(

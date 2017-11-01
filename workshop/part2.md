@@ -2,6 +2,8 @@
 
 > In this lab we leverage IoT Hub Routes and endpoints to automatically store all telemetry messages coming in into Storage Blobs. When you use Routes, you also need to add a route for the default Events endpoint if you want to keep receiving messages into it.
 
+![picture alt](media/part2-architecture.png "Azure Architecture")
+
 ### Add a Storage account
 1. Create a new Storage account in your resource group.
 1. It can be a locally redundant storage.
@@ -21,4 +23,3 @@
 1. Validate also that you are still getting the ingest into Time Series Insights.
 
 
-![picture alt](media/part2-architecture.png "Azure Architecture")

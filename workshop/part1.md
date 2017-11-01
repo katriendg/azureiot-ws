@@ -2,6 +2,8 @@
 
 > In this section we will create an Azure IoT Hub, Time Series Insights and setup ingestion from a device simulator.
 
+![picture alt](media/part1-architecture.png "Azure Architecture")
+
 ### Create Azure resources
 
 1. Create a new Resource Group. We recommend giving it a clear prefix like `initials-datedigits`. For example `kdg-10247`.

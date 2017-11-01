@@ -2,6 +2,8 @@
 
 > In this lab we will add an route to Event Hubs upon a rule that acts on alerts from the device. Once in Event Hubs we add a logic app to trigger and send a mail to the customer alerting her of high usage. We also use Device Twins to change the ingest rate for telemetry.
 
+![picture alt](media/part3-architecture.png "Azure Architecture")
+
 ### Add Event Hubs and route
 
 1. Create a new Event Hub account in your resource group.

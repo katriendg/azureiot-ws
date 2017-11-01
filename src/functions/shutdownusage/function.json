@@ -1,0 +1,13 @@
+{
+  "bindings": [
+    {
+      "name": "queueMsg",
+      "type": "serviceBusTrigger",
+      "direction": "in",
+      "queueName": "%Azure_QueueName%",
+      "connection": "Azure_Sb_ConnectionString",
+      "accessRights": "Listen"
+    }
+  ],
+  "disabled": false
+}

@@ -48,11 +48,12 @@
         }
     },
     "variables": {
-        "queueAuthorizationRuleNameListen" : "ListenFPolicy",
+        "nsAuthorizationRuleNameListen" : "ListenFPolicy",
         "namespaceAuthorizationRuleName" : "NsAuthRule",
         "namespaceAuthRuleName": "[concat(parameters('serviceBusNamespaceName'), concat('/', variables('namespaceAuthorizationRuleName')))]",
+        "namespaceAuthRuleNameListen": "[concat(parameters('serviceBusNamespaceName'), concat('/', variables('nsAuthorizationRuleNameListen')))]",
         "nsAuthorizationRuleResourceId": "[resourceId('Microsoft.ServiceBus/namespaces/authorizationRules', parameters('serviceBusNamespaceName'), variables('namespaceAuthorizationRuleName'))]",
-        "qAuthorizationRuleResourceIdListen": "[resourceId('Microsoft.ServiceBus/namespaces/queues/authorizationRules', parameters('serviceBusNamespaceName'), parameters('serviceBusQueueName'), variables('queueAuthorizationRuleNameListen'))]",
+        "nsAuthorizationRuleResourceIdListen": "[resourceId('Microsoft.ServiceBus/namespaces/authorizationRules', parameters('serviceBusNamespaceName'), variables('nsAuthorizationRuleNameListen'))]",
         "sbVersion": "2017-04-01",
         "asaConsumerGroup": "streamanalyticscg",
         "saVersion": "2016-03-01",
@@ -84,29 +85,14 @@
                         "maxSizeInMegabytes": "1024",
                         "requiresDuplicateDetection": "false",
                         "requiresSession": "false",
-                        "defaultMessageTimeToLive": "P10675199DT2H48M5.4775807S",
+                        "defaultMessageTimeToLive": "PT24H",
                         "deadLetteringOnMessageExpiration": "false",
                         "duplicateDetectionHistoryTimeWindow": "PT10M",
                         "maxDeliveryCount": "10",
                         "autoDeleteOnIdle": "P10675199DT2H48M5.4775807S",
                         "enablePartitioning": "false",
                         "enableExpress": "false"
-                    },
-                    "resources": [
-                        {
-                            "apiVersion": "[variables('sbVersion')]",
-                            "name": "[variables('queueAuthorizationRuleNameListen')]",
-                            "type": "AuthorizationRules",
-                            "dependsOn": [
-                                "[parameters('serviceBusQueueName')]"
-                            ],
-                            "properties": {
-                                "rights": [
-                                    "Listen"
-                                ]
-                            }
-                        }
-                    ]
+                    }
                 }
             ]
         },
@@ -121,6 +107,20 @@
             "properties": {
                 "rights": [
                     "Send"
+                ]
+            }
+        },
+        {
+            "apiVersion": "[variables('sbVersion')]",
+            "name": "[variables('namespaceAuthRuleNameListen')]",
+            "type": "Microsoft.ServiceBus/namespaces/authorizationRules",
+            "dependsOn": [
+                "[concat('Microsoft.ServiceBus/namespaces/', parameters('serviceBusNamespaceName'))]"
+            ],
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "rights": [
+                    "Listen"
                 ]
             }
         },
@@ -200,7 +200,7 @@
                     "name": "Transformation",
                     "properties": {
                         "streamingUnits": "[parameters('numberOfStreamingUnits')]",
-                        "query": "SELECT\r\n    *\r\nINTO\r\n    [QueueShutDown] \r\nFROM\r\n    [Hub]"
+                        "query": "SELECT\r\n    IoTHub.ConnectionDeviceId AS DeviceId,\r\n    AVG (consumption) AS [AverageConsumption],\r\n    MAX(consumption) AS [MaxConsumption],\r\n    60.0 AS OverTimeInSeconds,\r\n    COUNT(*) as HowManyTimes \r\nINTO\r\n    [QueueShutDown]\r\nFROM [hub]\r\nWHERE\r\n    [consumption] IS NOT NULL \r\n    AND [consumption] > 30\r\nGROUP BY\r\n    IoTHub.ConnectionDeviceId,\r\n    SlidingWindow (second, 60)"
                     }
                 }
             }
@@ -217,7 +217,7 @@
         },
         "QueueConnectionStringListen": {
             "type": "string",
-            "value": "[listkeys(variables('qAuthorizationRuleResourceIdListen'), variables('sbVersion')).primaryConnectionString]"
+            "value": "[listkeys(variables('nsAuthorizationRuleResourceIdListen'), variables('sbVersion')).primaryConnectionString]"
         }
     }
 }

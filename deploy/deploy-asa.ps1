@@ -69,7 +69,7 @@ Write-Host "Finished provisioning the solution - new deployment Stream Analytics
 Write-Warning "Azure Stream Analytics job is stopped by default"
 
 
-
+#Note for adding the Power BI output in ARM, see https://github.com/Azure/azure-rest-api-specs/blob/current/specification/streamanalytics/resource-manager/Microsoft.StreamAnalytics/2016-03-01/examples/Output_Create_PowerBI.json
 
 
 
