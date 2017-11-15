@@ -10,17 +10,25 @@
 
 ### Software
 
-- Microsoft Azure SDK: for .NET - VS 2017, or for your Development Language (https://azure.microsoft.com/en-us/downloads/) 
-- Microsoft Azure PowerShell or Microsoft Azure Command-Line Interface if you are not using Windows. (https://azure.microsoft.com/en-us/downloads/)
-- Node.js (LTS version) and NPM (https://nodejs.org/en/)
+- Visual Studio Code or another editor
+- Microsoft Azure SDK: for .NET - VS 2017, or for your Development Language [https://azure.microsoft.com/en-us/downloads/](https://azure.microsoft.com/en-us/downloads/) 
+- Microsoft Azure PowerShell or Microsoft Azure Command-Line Interface if you are not using Windows. [https://azure.microsoft.com/en-us/downloads/](https://azure.microsoft.com/en-us/downloads/)
+- Node.js (LTS version) and NPM [https://nodejs.org/en/](https://nodejs.org/en/)
 - Visual Studio Code
     - Optionally install the Azure IoT Hub Tools in VS Code
 - Azure IoT Tools
+<<<<<<< HEAD
     - https://github.com/Azure/iothub-explorer#iothub-explorer
     - Only on Windows: https://github.com/Azure/azure-iot-sdk-csharp/tree/master/tools/DeviceExplorer
     - https://github.com/Azure/iothub-diagnostics
 - Azure Storage Explorer (https://azure.microsoft.com/en-us/features/storage-explorer/)
 
+=======
+    - [https://github.com/Azure/iothub-explorer#iothub-explorer](https://github.com/Azure/iothub-explorer#iothub-explorer)
+    - Only on Windows: [https://github.com/Azure/azure-iot-sdk-csharp/tree/master/tools/DeviceExplorer](https://github.com/Azure/azure-iot-sdk-csharp/tree/master/tools/DeviceExplorer)
+    - [https://github.com/Azure/iothub-diagnostics](https://github.com/Azure/iothub-diagnostics)
+- Azure Storage Explorer [https://azure.microsoft.com/en-us/features/storage-explorer/](https://azure.microsoft.com/en-us/features/storage-explorer/)
+>>>>>>> part02
 
 
 
