@@ -1,10 +1,8 @@
 # Azure IoT WS - Part 1
 
 > In this section we will create an Azure IoT Hub, Time Series Insights and setup ingestion from a device simulator.
-<<<<<<< HEAD
-=======
+
 ![picture alt](media/part1-architecture.png "Azure Architecture")
->>>>>>> part02
 
 ### Create Azure resources
 

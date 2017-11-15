@@ -17,18 +17,10 @@
 - Visual Studio Code
     - Optionally install the Azure IoT Hub Tools in VS Code
 - Azure IoT Tools
-<<<<<<< HEAD
-    - https://github.com/Azure/iothub-explorer#iothub-explorer
-    - Only on Windows: https://github.com/Azure/azure-iot-sdk-csharp/tree/master/tools/DeviceExplorer
-    - https://github.com/Azure/iothub-diagnostics
-- Azure Storage Explorer (https://azure.microsoft.com/en-us/features/storage-explorer/)
-
-=======
     - [https://github.com/Azure/iothub-explorer#iothub-explorer](https://github.com/Azure/iothub-explorer#iothub-explorer)
     - Only on Windows: [https://github.com/Azure/azure-iot-sdk-csharp/tree/master/tools/DeviceExplorer](https://github.com/Azure/azure-iot-sdk-csharp/tree/master/tools/DeviceExplorer)
     - [https://github.com/Azure/iothub-diagnostics](https://github.com/Azure/iothub-diagnostics)
 - Azure Storage Explorer [https://azure.microsoft.com/en-us/features/storage-explorer/](https://azure.microsoft.com/en-us/features/storage-explorer/)
->>>>>>> part02
 
 
 
