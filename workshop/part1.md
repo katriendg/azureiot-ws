@@ -51,4 +51,8 @@
 1. Open your Time Series account and review.
 
 
+### Other parts in this lab
 
+1. [Part 2](workshop/part2.md)
+1. [Part 3](workshop/part3.md)
+1. [Part 4](workshop/part4.md)

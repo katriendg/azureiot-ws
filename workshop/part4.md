@@ -78,4 +78,8 @@ GROUP BY
 ### End 
 Make sure you clean up your resources to stop consuming Azure resources. If you have created everything in the same resource group as recommended, you can simply delete the resource group via the Azure Portal UI.
 
+### Other parts in this lab
 
+1. [Part 1](workshop/part1.md)
+1. [Part 2](workshop/part2.md)
+1. [Part 3](workshop/part3.md)

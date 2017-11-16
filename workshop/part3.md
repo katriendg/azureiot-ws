@@ -90,3 +90,8 @@ if([yourrulehere]){
 
 You could leverage a custom function or Stream Analytics with reference data containing Customer information. Create a new Event with a message body that contains the customer e-mail and only then get the Logic App to run. In this case you can keep the Route's condition but you might be sending it to an Azure Function first instead of directly to the Logic App.
 
+### Other parts in this lab
+
+1. [Part 1](workshop/part1.md)
+1. [Part 2](workshop/part2.md)
+1. [Part 4](workshop/part4.md)

@@ -23,3 +23,8 @@
 1. Validate also that you are still getting the ingest into Time Series Insights.
 
 
+## Other parts in this lab
+
+1. [Part 1](workshop/part1.md)
+1. [Part 3](workshop/part3.md)
+1. [Part 4](workshop/part4.md)

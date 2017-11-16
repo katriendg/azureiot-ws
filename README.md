@@ -1,6 +1,10 @@
 # Azure IoT Workshop
 
-> Note the lab is not a detailed step by step guide, assuming you have knowledge of the Azure platform. Browse to the [workshop](workshop/part1.md) folder for the 4 steps in the lab.
+> Note the lab is not a detailed step by step guide, assuming you have knowledge of the Azure platform. Browse to the [workshop](workshop/) folder for the 4 steps in the lab.
+1. [Part 1](workshop/part1.md)
+1. [Part 2](workshop/part2.md)
+1. [Part 3](workshop/part3.md)
+1. [Part 4](workshop/part4.md)
 
 >  Disclaimer: all samples and labs are intended as a learning tool, not to be used in production.
 
