@@ -11,7 +11,7 @@
 1. Create a Time Series Insights account
 1. Once your IoT Hub is created, go to Endpoints > Built-in Endpoints > Events. 
     1. Add a consumer group name `timeseries`.
-1. Add a device to your IoT Hub. You can use the Device Explorer pane in the IoT Hub. (TAYO: I dont think we should do this here. should be on the next point
+1. Add a device to your IoT Hub. You can use the Device Explorer pane in the IoT Hub. (TAYO: I dont think we should do this here. should be on the next point)  
     Optional: use IoT Hub ***Device Explorer*** tool (see pre-requisites) or the CLI tool ***iothub-explorer*** to create your device instead.
 1. Go to your Time Series account. Add a data source to consume data from the IoT Hub, and make sure to use the `timeseries` consumer group.
 
