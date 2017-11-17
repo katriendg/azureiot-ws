@@ -9,7 +9,7 @@
 1. Create a new Resource Group. We recommend giving it a clear prefix like `initials-datedigits`. For example `kdg-10247`.
 1. Create an Azure IoT Hub - choose Free tier if you don't have one already in your subscription (only one Free allowed). Choose S1 if you cannot create a free one. You can use the default settings.
 1. Create a Time Series Insights account
-1. One your IoT Hub is created, go to Endpoints > Built-in Endpoints > Events. 
+1. Once your IoT Hub is created, go to Endpoints > Built-in Endpoints > Events. 
     1. Add a consumer group name `timeseries`.
 1. Add a device to your IoT Hub. You can use the Device Explorer pane in the IoT Hub. 
     Optional: use IoT Hub ***Device Explorer*** tool (see pre-requisites) or the CLI tool ***iothub-explorer*** to create your device instead.
