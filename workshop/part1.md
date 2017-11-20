@@ -31,7 +31,7 @@
 1. Run the simulator and validate the message sent contains a consumption value. Keep it running for a few minutes to get some data in your IoT Hub.
 
 #### Option B: Smart meter and agent console
-1. Clone the repository [https://github.com/lucarv/iotcloudworkshop](https://github.com/lucarv/iotcloudworkshop).
+1. Clone the repository [https://github.com/lucarv/iotcloudworkshop](https://github.com/katriendg/iotcloudworkshop/tree/azureiot-ws).
 1. Browse the newly cloned directory `iotcloudworkshop` and browse to subdirectory `facit`, which contains the completed solution.
 1. In this directory you'll find two sub-directories:
     1. `metersimulator` is a smart meter simulator application to be used as sample.
