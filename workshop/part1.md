@@ -11,9 +11,9 @@
 1. Create a Time Series Insights account
 1. Once your IoT Hub is created, go to Endpoints > Built-in Endpoints > Events. 
     1. Add a consumer group name `timeseries`.
-1. Add a device to your IoT Hub. You can use the Device Explorer pane in the IoT Hub. (TAYO: I dont think we should do this here. should be on the next point)  
+1. Add a device to your IoT Hub. You can use the Device Explorer pane in the IoT Hub. You will need to take note of the connection string properties of this device for the next steps below. 
     Optional: use IoT Hub ***Device Explorer*** tool (see pre-requisites) or the CLI tool ***iothub-explorer*** to create your device instead.
-1. Go to your Time Series account. Add a data source to consume data from the IoT Hub, and make sure to use the `timeseries` consumer group.
+1. Go to your Time Series account. Add an event source to consume data from the IoT Hub, and make sure to use the `timeseries` consumer group.
 
 ### The simulator for ingestion of telemetry
 
@@ -48,7 +48,7 @@
 
 ### End result
 1. After ingesting telemetry you should be able to dive into the telemetry data using your Time Series Insights account.
-1. Open your Time Series account and review.
+1. Open your Time Series account and review ingested data, browse and filter to dive into telemetry details.
 
 
 ### Other parts in this lab
