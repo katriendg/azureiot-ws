@@ -6,14 +6,15 @@
 
 ### Create Azure resources
 
-1. Create a new Resource Group. We recommend giving it a clear prefix like `initials-datedigits`. For example `kdg-10247`.
+1. Create a new Resource Group. We recommend giving it a clear prefix like `initials-datedigits`. For example `kdg10247-rg`.
 1. Create an Azure IoT Hub - choose Free tier if you don't have one already in your subscription (only one Free allowed). Choose S1 if you cannot create a free one. You can use the default settings.
-1. Create a Time Series Insights account
+1. Create a Time Series Insights service.
+    1. Once the service is created, go to 'Data Access Policies'. Add your own account to the Reader (and optionally Contributor) permission. This is required to be a reader of the data in the Time Series Insights UI environment.
 1. Once your IoT Hub is created, go to Endpoints > Built-in Endpoints > Events. 
     1. Add a consumer group name `timeseries`.
 1. Add a device to your IoT Hub. You can use the Device Explorer pane in the IoT Hub. You will need to take note of the connection string properties of this device for the next steps below. 
     Optional: use IoT Hub ***Device Explorer*** tool (see pre-requisites) or the CLI tool ***iothub-explorer*** to create your device instead.
-1. Go to your Time Series account. Add an event source to consume data from the IoT Hub, and make sure to use the `timeseries` consumer group.
+1. Go to your Time Series Insights service. Add an event source to consume data from the IoT Hub, and make sure to use the `timeseries` consumer group.
 
 ### The simulator for ingestion of telemetry
 
@@ -31,11 +32,11 @@
 1. Run the simulator and validate the message sent contains a consumption value. Keep it running for a few minutes to get some data in your IoT Hub.
 
 #### Option B: Smart meter and agent console
-1. Clone the repository [https://github.com/katriendg/iotcloudworkshop/tree/azureiot-ws](https://github.com/katriendg/iotcloudworkshop/tree/azureiot-ws).
+1. Clone the repository [https://github.com/lucarv/iotcloudworkshop](https://github.com/lucarv/iotcloudworkshop).
 1. Browse the newly cloned directory `iotcloudworkshop` and browse to subdirectory `facit`, which contains the completed solution.
 1. In this directory you'll find two sub-directories:
     1. `metersimulator` is a smart meter simulator application to be used as sample.
-    1. `serviceportal` is a console for the service agent to be used later
+    1. `serviceportal` is a console for the service agent to be used later.
 1. For now, browse to the `metersimulator` and open this folder in Visual Studio Code. 
 1. Using a command line terminal, or within the Integrated Terminal in Visual Studio Code, start up the application by
     1. Run `npm install` to install the node packages
