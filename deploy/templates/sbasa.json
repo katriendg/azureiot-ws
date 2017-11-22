@@ -200,7 +200,7 @@
                     "name": "Transformation",
                     "properties": {
                         "streamingUnits": "[parameters('numberOfStreamingUnits')]",
-                        "query": "SELECT\r\n    IoTHub.ConnectionDeviceId AS DeviceId,\r\n    AVG (consumption) AS [AverageConsumption],\r\n    MAX(consumption) AS [MaxConsumption],\r\n    60.0 AS OverTimeInSeconds,\r\n    COUNT(*) as HowManyTimes \r\nINTO\r\n    [QueueShutDown]\r\nFROM [hub]\r\nWHERE\r\n    [consumption] IS NOT NULL \r\n    AND [consumption] > 30\r\nGROUP BY\r\n    IoTHub.ConnectionDeviceId,\r\n    SlidingWindow (second, 60)"
+                        "query": "SELECT\n    IoTHub.ConnectionDeviceId AS DeviceId,\n    AVG (consumption) AS [AverageConsumption],\n        COUNT(*) as HowManyTimes \nINTO\n    [QueueShutDown]\nFROM [hub] TIMESTAMP by EventEnqueuedUtcTime\nGROUP BY\n    IoTHub.ConnectionDeviceId,\n    TumblingWindow(second, 60)\nHAVING \nAVG(consumption) > 10\n"
                     }
                 }
             }

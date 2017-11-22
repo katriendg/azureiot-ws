@@ -30,18 +30,16 @@
 SELECT
     IoTHub.ConnectionDeviceId AS DeviceId,
     AVG (consumption) AS [AverageConsumption],
-    MAX(consumption) AS [MaxConsumption],
-    60.0 AS OverTimeInSeconds,
-    COUNT(*) as HowManyTimes 
+        COUNT(*) as HowManyTimes 
 INTO
     [QueueShutDown]
-FROM [hub]
-WHERE
-    [consumption] IS NOT NULL 
-    AND [consumption] > 30
+FROM [hub] TIMESTAMP by EventEnqueuedUtcTime
 GROUP BY
     IoTHub.ConnectionDeviceId,
-    SlidingWindow (second, 60)
+    TumblingWindow(second, 60)
+HAVING 
+AVG(consumption) > 10
+
 ```
 
 5. You can test your query before starting it. To do this:
