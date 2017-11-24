@@ -1,6 +1,6 @@
 # Azure IoT WS - Part 4
 
-> In part four we are further completing the scenario: implement an event processor to analyze data coming in. Through Stream Analytics we calculate usage of a device and take action based on values surpassing a certain threshold. We leverage a Service Bus Queue which is picked up by an Azure Function to act upon the trigger and send a command (DirectMethod) to the device to shut something off. Power BI is also used to build a dashboard.
+> In part four we are further completing the scenario: implement an event processor to analyze data coming in. Through Stream Analytics we calculate consumption of a device and take action based on values surpassing a certain threshold. We leverage a Service Bus Queue which is picked up by an Azure Function to act upon the trigger and send a command (DirectMethod) to the device to shut something off. Power BI is also used to build a dashboard.
 
 ![picture alt](media/part4-architecture.png "Azure Architecture for part 4")
 
@@ -9,13 +9,13 @@
 1. Create a new Service Bus account in your Resource group.
 1. Create a Queue - if you prefer you can leverage Topics but for this exercise a Queue is fine.
 1. In your existing IoT Hub account, go to your Endpoints. 
-    1. Under the built-in Events endpoint, add a new Consumer group. Name it `asaconsumergroup`.
+    1. Under the built-in Events endpoint, add a new Consumer group. Name it `asaconsumergroup`. See why we are adding a new consumer group per 'consumer' application of the events [here](https://docs.microsoft.com/en-us/azure/stream-analytics/stream-analytics-define-inputs#create-data-stream-input-from-event-hubs).
 
 ### Azure Stream Analytics to process hot data
 
-> In this section, we'll leverage Azure Stream Analytics as the stream processor. Azure Stream Analytics will get data from the IoT Hub and deliver 2 outputs: near real-time data directly to Power BI (optional), and a message into a Service Bus based on a calculation of energy usage by a device/system.
+> In this section, we'll leverage Azure Stream Analytics as the event stream processor. Azure Stream Analytics will get data from the IoT Hub and deliver 2 outputs: near real-time data directly to Power BI (optional), and a message into a Service Bus based on a calculation of energy usage by a device/system during a period of time.
 
-1. Create a new Azure Stream Analytics account. You can use S1 as the SKU. Note that because we are using several queries and outputs, you should scale out to 2 instances. You can scale down right after trying out the exercise to save costs.
+1. Create a new Azure Stream Analytics account. You can use S1 as the SKU. Not if you are also doing the Power BI exercise: we are using several queries and outputs, you should scale out to 2 instances. You can scale down right after trying out the exercise to save costs.
 1. Create an Input:
     1. Choose IoT Hub as the type of input.
     1. Name the output `hub`.
@@ -60,9 +60,13 @@ AVG(consumption) > 30
 ![picture alt](media/functionbindings.png "Azure Function bindings screen")
 1. Add the project.json file as found in `../src/functions/shutdownusage`.
 1. To test your function:
-    1. Make sure you have the simulator running and a registered event handler for the method named `shutdownUsage`. 
-    1. You can use the following input to Test your function:
-    `{"deviceid":"[sampleDevice]","averageconsumption":30.0,"maxconsumption":35.0,"overtimeinseconds":60.0,"howmanytimes":3}`
+    1. Make sure you have the simulator running and a registered event handler for the method named `stop`. By default the Raspberry Pi online simulator already has a handler registered:
+    ```
+    client.onDeviceMethod('stop', onStop);
+    ```
+    3. You can use the following input to Test your function:
+    `{"deviceid":"[sampleDevice]","averageconsumption":30.0,"howmanytimes":3}`
+1. With the simulator sending data, validate that you receive a 'Stop' command in the simulator after the function triggers.
 
 
 ## Optional: add a Power BI report

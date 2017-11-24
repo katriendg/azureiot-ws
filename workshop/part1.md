@@ -1,15 +1,16 @@
 # Azure IoT WS - Part 1
 
 > In this section we will create an Azure IoT Hub, Time Series Insights and setup ingestion from a device simulator.
+IoT Hub is leveraged as the Cloud Gateway for device identity and telemetry ingest. Time Series Insights is leveraged to analyze unstructured (telemetry) data coming from the devices.
 
 ![picture alt](media/part1-architecture.png "Azure Architecture")
 
 ### Create Azure resources
 
 1. Create a new Resource Group. We recommend giving it a clear prefix like `initials-datedigits`. For example `kdg10247-rg`.
-1. Create an Azure IoT Hub - choose Free tier if you don't have one already in your subscription (only one Free allowed). Choose S1 if you cannot create a free one. You can use the default settings.
+1. Create an Azure IoT Hub - we recommend to choose S1 as the SKU size. If you would like to use the Free tier note that you will not be able to complete the labs as you require more routing options than possible on this SKU. You can use the default settings.
 1. Once your IoT Hub is created, go to Endpoints > Built-in Endpoints > Events. 
-    1. Add a consumer group name `timeseries`.
+    1. Add a consumer group named `timeseries`.
 1. Create a new device to your IoT Hub. You can use the Device Explorer pane in the IoT Hub on Azure Portal. You will need to take note of the connection string properties of this device for the next steps below. 
     Optional: use IoT Hub ***Device Explorer*** tool (see pre-requisites) or the CLI tool ***iothub-explorer*** to create your device instead.
 1. Create a Time Series Insights service.
@@ -21,14 +22,14 @@
 
 1. Use the Raspberry Pi online simulator: 
 [https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-raspberry-pi-web-simulator-get-started](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-raspberry-pi-web-simulator-get-started)
-1. Enter the connection string to your newly created device (copy the connection string from the device's properties screen in the Azure Portal)
+1. Enter the connection string to your newly created device (copy the primary connection string from the _device's properties pane_ in the Azure Portal). 
 1. Change the Telemetry message the simulator is sending to the cloud and add a field named `consumption` with a random value to the Message. 
 1. Run the simulator and validate the message sent contains a consumption value. Keep it running for a few minutes to get some data in your IoT Hub.
 
 
 
 ### End result
-1. After ingesting telemetry you should be able to dive into the telemetry data using your Time Series Insights account.
+1. After ingesting telemetry you should be able to dive into the telemetry data using your Time Series Insights service.
 1. Open your Time Series account and review ingested data, browse and filter to dive into telemetry details.
     1. ***Note: if you want to see a more complete sample of Time Series Insights data, you can go to this demo: (https://insights.timeseries.azure.com/demo)[https://insights.timeseries.azure.com/demo].***
 

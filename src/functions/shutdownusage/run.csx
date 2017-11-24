@@ -30,7 +30,7 @@ static async Task SendDMessage(string deviceId, TraceWriter log)
 {
     // create IoT Hub connection.
     var serviceClient = ServiceClient.CreateFromConnectionString(connectionString, Microsoft.Azure.Devices.TransportType.Amqp);
-    var methodInvocation = new CloudToDeviceMethod("shutdownUsage") { ResponseTimeout = TimeSpan.FromSeconds(10) };
+    var methodInvocation = new CloudToDeviceMethod("stop") { ResponseTimeout = TimeSpan.FromSeconds(10) };
 
     log.Info($"Ready to send DM to device {deviceId}");
     //send DM
